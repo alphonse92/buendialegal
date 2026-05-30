@@ -1,5 +1,7 @@
 # buendialegal — Landing Page
 
+> **Idioma:** Este proyecto es desarrollado por un hispanohablante. Toda comunicación, respuestas y comentarios deben ser **en español**, salvo que se indique explícitamente lo contrario.
+
 Plain HTML/CSS/JS landing page for Buendia Legal, deployed via GitHub Pages from the `main` branch root.
 
 ## Project structure
