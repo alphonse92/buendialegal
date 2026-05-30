@@ -1,0 +1,64 @@
+Collection: Receipts {
+    Item: Receipt {
+        merchant
+        date
+        total
+        category
+    }
+}
+
+Condition: PersonalBudgetCondition {
+    limit
+    totalSpent = sum(Receipts.total)
+    exceeded when totalSpent > limit
+}
+
+UploadReceiptScreen: Screen {
+    Title: "Add receipt"
+    Upload: "Upload photo"
+    States:
+        Processing: shows Spinner("Processing receipt...")
+        Error: shows InlineMessage("We couldn't read the receipt")
+        Success: returns to ReceiptsView
+    Upload:
+        -> enters Processing
+        -> onSuccess adds Receipt to Receipts
+        -> returns to ReceiptsView
+}
+
+ReceiptsView: Screen {
+    Title: "Your receipts"
+    Content:
+        List of Receipts
+    PrimaryAction: "Add receipt"
+        -> opens UploadReceiptScreen as modal
+    States:
+        Empty: shows EmptyState {
+            message: "No receipts yet"
+            PrimaryAction: "Upload receipt"
+        }
+    Alert when PersonalBudgetCondition.exceeded {
+				style: toast
+        variant: warning
+        message: "You exceeded your monthly budget"
+    }
+}
+
+Flow: UploadReceiptFlow {
+
+    From ReceiptsView
+        -> taps "Add receipt"
+        -> opens UploadReceiptScreen
+
+    In UploadReceiptScreen
+        -> uploads photo
+        -> enters Processing
+
+    When processing succeeds
+        -> adds new Receipt to Receipts
+        -> returns to ReceiptsView
+
+    Outcome:
+        new Receipt appears at top of list
+}
+

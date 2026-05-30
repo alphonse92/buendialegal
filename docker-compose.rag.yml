@@ -1,0 +1,47 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: db
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - rag_data:/var/lib/postgresql/data
+      - ./rag/src/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+  rag:
+    build: ./rag/
+    container_name: app
+    working_dir: /rag
+    volumes:
+      - ./code-base-example:/codebase
+    environment:
+      - CODEBASE_PATH=/codebase/
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - REQUIRED_EXTS=.ts,.tsx,.js,.json,.sql,.md,.html
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - RAG_EMBED_MODEL=nomic-embed-text
+      - RAG_LLM_MODEL=llama3
+      # LangChain tuning
+      - RAG_LC_COLLECTION=vector_agent
+      - RAG_MEMORY_THRESHOLD=0.65
+      # Agent memory
+      - RAG_MEMORY_COLLECTION=agent_memory
+      - RAG_JOURNAL_COLLECTION=agent_journal
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  rag_data:
+    name: rag-backend-db
